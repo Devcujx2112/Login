@@ -1,25 +1,43 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:login/Register.dart';
+import '../DAO/DAO_Account.dart';
+import 'Login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
-  runApp(const Login());
-}
-
-class Login extends StatelessWidget {
-  const Login({super.key});
+class Register extends StatefulWidget {
+  const Register({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const LoginScreen(),
-    );
-  }
+  State<Register> createState() => _RegisterState();
 }
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class _RegisterState extends State<Register> {
+  final TextEditingController _txtEmail = TextEditingController();
+  final TextEditingController _txtPassword = TextEditingController();
+  final TextEditingController _txtFullName = TextEditingController();
+  final DAOAccount _daoAccount = DAOAccount();
+
+  Future<void> _register() async {
+    try {
+      await _daoAccount.register(
+        _txtEmail.text,
+        _txtPassword.text,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("🎉 Đăng ký thành công!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Lỗi: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +71,7 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Login",
+                    "Register",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -74,6 +92,7 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             TextField(
+              controller: _txtEmail,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
@@ -89,6 +108,7 @@ class LoginScreen extends StatelessWidget {
             Padding(padding: EdgeInsets.only(bottom: 10)),
             const SizedBox(height: 12),
             TextField(
+              controller: _txtPassword,
               obscureText: true,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
@@ -102,22 +122,31 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
             ),
+            Padding(padding: EdgeInsets.only(bottom: 10)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _txtFullName,
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.black54,
+                hintText: "Full Name",
+                hintStyle: const TextStyle(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
             Container(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 30),
+              padding: EdgeInsets.only(left: 10, right: 10, top: 50),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF4B39EF),
                       padding: const EdgeInsets.symmetric(
@@ -127,7 +156,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Login",
+                      "Confirm",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -139,19 +168,23 @@ class LoginScreen extends StatelessWidget {
                 alignment: Alignment.bottomCenter,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Login()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 20),
+                        horizontal: 30, vertical: 17),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: const Text(
-                    "Continue As Guest",
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    "Back to login",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

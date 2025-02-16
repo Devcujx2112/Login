@@ -1,21 +1,41 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:login/Login.dart';
+import 'package:login/GUI/Register.dart';
+import '../Database/firebase_options.dart';
 
-class Register extends StatelessWidget {
-  const Register({super.key});
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    if (kDebugMode) {
+      print("Firebase đã kết nối thành công!");
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print("Lỗi kết nối Firebase: $e");
+    }
+  }
+  runApp(const Login());
+}
+
+class Login extends StatelessWidget {
+  const Login({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: const RegisterScreen(),
+      home: const LoginScreen(),
     );
   }
 }
 
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +69,7 @@ class RegisterScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Register",
+                    "Login",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -98,28 +118,20 @@ class RegisterScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(padding: EdgeInsets.only(bottom: 10)),
-            const SizedBox(height: 12),
-            TextField(
-              obscureText: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.black54,
-                hintText: "Full Name",
-                hintStyle: const TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
             Container(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 50),
+              padding: EdgeInsets.only(left: 10, right: 10, top: 30),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
@@ -131,7 +143,7 @@ class RegisterScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Confirm",
+                      "Login",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -143,23 +155,19 @@ class RegisterScreen extends StatelessWidget {
                 alignment: Alignment.bottomCenter,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Login()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 17),
+                        horizontal: 30, vertical: 20),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: const Text(
-                    "Back to login",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
+                    "Continue As Guest",
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

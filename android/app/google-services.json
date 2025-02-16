@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "251709212452",
+    "project_id": "test-login-lyasob",
+    "storage_bucket": "test-login-lyasob.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:251709212452:android:b041fb1c9ecb400683d5b1",
+        "android_client_info": {
+          "package_name": "com.example.login"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3KOcwrqEZVOJoECk7eb3PHps6fP3dOis"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:251709212452:android:b2bc5b988e5d84fc83d5b1",
+        "android_client_info": {
+          "package_name": "com.mycompany.testlogin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3KOcwrqEZVOJoECk7eb3PHps6fP3dOis"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
