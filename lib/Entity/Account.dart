@@ -1,9 +1,20 @@
 class Account{
+  late String _uid;
   late String _email;
   late String _fullName;
   late String _role;
+  late DateTime _createdAt;
 
-  Account(this._email, this._fullName, this._role);
+  Account(this._email, this._fullName){
+    _role = 'user';
+    _createdAt = DateTime.now();
+  }
+
+  String get uid => _uid;
+
+  set uid(String value) {
+    _uid = value;
+  }
 
   String get role => _role;
 
@@ -23,8 +34,14 @@ class Account{
     _email = value;
   }
 
+  DateTime get createdAt => _createdAt;
+
+  set createdAt(DateTime value) {
+    _createdAt = value;
+  }
+
   @override
   String toString() {
-    return 'Account{_email: $_email, _fullName: $_fullName, _role: $_role}';
+    return 'Account{email: $_email, fullName: $_fullName, role: $_role, createdAt: $_createdAt}';
   }
 }

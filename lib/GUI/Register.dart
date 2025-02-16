@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:login/Entity/Account.dart';
 import '../DAO/DAO_Account.dart';
 import 'Login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -17,25 +17,87 @@ class _RegisterState extends State<Register> {
   final TextEditingController _txtFullName = TextEditingController();
   final DAOAccount _daoAccount = DAOAccount();
 
+  bool _emailError = false;
+  bool _passwordError = false;
+  bool _nameError = false;
+
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
+  final FocusNode _nameFocus = FocusNode();
+
+  //Check email
+  bool isValidEmail(String email) {
+    return RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(email);
+  }
+
+  //Validate input user
+  void ValidateInput() {
+    setState(() {
+      _emailError = _txtEmail.text.isEmpty || !isValidEmail(_txtEmail.text);
+      _passwordError =
+          _txtPassword.text.isEmpty || _txtPassword.text.length < 6;
+      _nameError = _txtFullName.text.isEmpty;
+    });
+
+    if (_emailError || _passwordError || _nameError) {
+      return;
+    }
+  }
+
+  //Hint input focus
+  @override
+  void initState() {
+    super.initState();
+
+    _emailFocus.addListener(() {
+      if (_emailFocus.hasFocus) {
+        setState(() {
+          _emailError = false;
+        });
+      }
+    });
+
+    _passwordFocus.addListener(() {
+      if (_passwordFocus.hasFocus) {
+        setState(() {
+          _passwordError = false;
+        });
+      }
+    });
+
+    _nameFocus.addListener(() {
+      if (_nameFocus.hasFocus) {
+        setState(() {
+          _nameError = false;
+        });
+      }
+    });
+  }
+
+  //Register account
   Future<void> _register() async {
+    ValidateInput();
+    String inputEmail = _txtEmail.text.toString();
+    String inputPassword = _txtPassword.text.toString();
+    String inputFullname = _txtFullName.text.toString();
+    Account account = Account(inputEmail, inputFullname);
     try {
       await _daoAccount.register(
-        _txtEmail.text,
-        _txtPassword.text,
+        account,
+        inputPassword,
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("🎉 Đăng ký thành công!"),
+          content: Text("Đăng ký thành công!"),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Lỗi: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 
@@ -93,11 +155,17 @@ class _RegisterState extends State<Register> {
             const SizedBox(height: 20),
             TextField(
               controller: _txtEmail,
+              focusNode: _emailFocus,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black54,
                 hintText: "Your Email Address",
+                errorText: _emailError
+                    ? (_txtEmail.text.isEmpty
+                        ? 'Email không được để trống'
+                        : 'Email không hợp lệ')
+                    : null,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -109,12 +177,18 @@ class _RegisterState extends State<Register> {
             const SizedBox(height: 12),
             TextField(
               controller: _txtPassword,
+              focusNode: _passwordFocus,
               obscureText: true,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black54,
                 hintText: "Password",
+                errorText: _passwordError
+                    ? (_txtPassword.text.isEmpty
+                        ? 'Password không được để trống'
+                        : 'Password phải có ít nhất 6 kí tự')
+                    : null,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -126,12 +200,13 @@ class _RegisterState extends State<Register> {
             const SizedBox(height: 12),
             TextField(
               controller: _txtFullName,
-              obscureText: true,
+              focusNode: _nameFocus,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black54,
                 hintText: "Full Name",
+                errorText: _nameError ? 'Full Name không được để trống' : null,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
