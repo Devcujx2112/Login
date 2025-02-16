@@ -1,24 +1,85 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:login/GUI/Register.dart';
-import '../Database/firebase_options.dart';
+import 'package:login/Helpers/Validate_input.dart';
+import 'package:login/Model/Account.dart';
+import '../ViewModel/VM_Account.dart';
+import 'Login.dart';
 
-class Login extends StatelessWidget {
-  const Login({super.key});
+class Register extends StatefulWidget {
+  const Register({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const LoginScreen(),
-    );
-  }
+  State<Register> createState() => _RegisterState();
 }
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class _RegisterState extends State<Register> {
+  final TextEditingController _txtEmail = TextEditingController();
+  final TextEditingController _txtPassword = TextEditingController();
+  final TextEditingController _txtFullName = TextEditingController();
+
+  final DAOAccount _daoAccount = DAOAccount();
+
+  String? _emailError;
+  String? _passwordError;
+  String? _nameError;
+
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
+  final FocusNode _nameFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    FocusHelper.setupFocusListeners(
+      focusNode: _emailFocus,
+      onFocusGained: () => setState(() => _emailError = null),
+    );
+
+    FocusHelper.setupFocusListeners(
+      focusNode: _passwordFocus,
+      onFocusGained: () => setState(() => _passwordError = null),
+    );
+
+    FocusHelper.setupFocusListeners(
+      focusNode: _nameFocus,
+      onFocusGained: () => setState(() => _nameError = null),
+    );
+  }
+
+  //Validate input user
+  void ValidateInput() {
+    setState(() {
+      _emailError = Validators.validateEmail(_txtEmail.text.toString());
+      _passwordError = Validators.validatePassword(_txtPassword.text.toString());
+      _nameError = Validators.validateFullName(_txtFullName.text.toString());
+    });
+  }
+
+  //Register account
+  Future<void> _Register() async {
+    ValidateInput();
+    String inputEmail = _txtEmail.text.toString();
+    String inputPassword = _txtPassword.text.toString();
+    String inputFullname = _txtFullName.text.toString();
+    Account account = Account(inputEmail, inputFullname);
+    try {
+      await _daoAccount.register(
+        account,
+        inputPassword,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Đăng ký thành công!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Login()));
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +113,7 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Login",
+                    "Register",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -73,11 +134,14 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             TextField(
+              controller: _txtEmail,
+              focusNode: _emailFocus,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black54,
                 hintText: "Your Email Address",
+                errorText: _emailError,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -88,12 +152,33 @@ class LoginScreen extends StatelessWidget {
             Padding(padding: EdgeInsets.only(bottom: 10)),
             const SizedBox(height: 12),
             TextField(
+              controller: _txtPassword,
+              focusNode: _passwordFocus,
               obscureText: true,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black54,
                 hintText: "Password",
+                errorText: _passwordError,
+                hintStyle: const TextStyle(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            Padding(padding: EdgeInsets.only(bottom: 10)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _txtFullName,
+              focusNode: _nameFocus,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.black54,
+                hintText: "Full Name",
+                errorText: _nameError,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -102,21 +187,13 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             Container(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 30),
+              padding: EdgeInsets.only(left: 10, right: 10, top: 50),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _Register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF4B39EF),
                       padding: const EdgeInsets.symmetric(
@@ -126,7 +203,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Login",
+                      "Confirm",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -138,19 +215,23 @@ class LoginScreen extends StatelessWidget {
                 alignment: Alignment.bottomCenter,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Login()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 20),
+                        horizontal: 30, vertical: 17),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: const Text(
-                    "Continue As Guest",
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    "Back to login",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

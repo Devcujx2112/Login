@@ -1,105 +1,84 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:login/Entity/Account.dart';
-import '../DAO/DAO_Account.dart';
-import 'Login.dart';
+import 'package:login/View/Register.dart';
+import 'package:login/View/admin.dart';
+import 'package:login/View/user.dart';
+import '../Database/firebase_options.dart';
+import '../Helpers/Validate_input.dart';
+import '../Model/Account.dart';
+import '../ViewModel/VM_Account.dart';
 
-class Register extends StatefulWidget {
-  const Register({super.key});
+class Login extends StatefulWidget {
+  const Login({super.key});
 
   @override
-  State<Register> createState() => _RegisterState();
+  State<Login> createState() => _LoginScreenState();
 }
 
-class _RegisterState extends State<Register> {
+class _LoginScreenState extends State<Login> {
   final TextEditingController _txtEmail = TextEditingController();
   final TextEditingController _txtPassword = TextEditingController();
-  final TextEditingController _txtFullName = TextEditingController();
+
   final DAOAccount _daoAccount = DAOAccount();
 
-  bool _emailError = false;
-  bool _passwordError = false;
-  bool _nameError = false;
+  String? _emailError;
+  String? _passwordError;
 
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
-  final FocusNode _nameFocus = FocusNode();
 
-  //Check email
-  bool isValidEmail(String email) {
-    return RegExp(
-            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-        .hasMatch(email);
+  @override
+  void initState() {
+    super.initState();
+    FocusHelper.setupFocusListeners(
+      focusNode: _emailFocus,
+      onFocusGained: () => setState(() => _emailError = null),
+    );
+
+    FocusHelper.setupFocusListeners(
+      focusNode: _passwordFocus,
+      onFocusGained: () => setState(() => _passwordError = null),
+    );
   }
 
   //Validate input user
   void ValidateInput() {
     setState(() {
-      _emailError = _txtEmail.text.isEmpty || !isValidEmail(_txtEmail.text);
-      _passwordError =
-          _txtPassword.text.isEmpty || _txtPassword.text.length < 6;
-      _nameError = _txtFullName.text.isEmpty;
+      _emailError = Validators.validateEmail(_txtEmail.text);
+      _passwordError = Validators.validatePassword(_txtPassword.text);
     });
+  }
 
-    if (_emailError || _passwordError || _nameError) {
+  void _Login() async {
+    ValidateInput();
+    if (_emailError != null || _passwordError != null) {
       return;
     }
-  }
+    try{
+      String? role = await _daoAccount.login(_txtEmail.text, _txtPassword.text);
 
-  //Hint input focus
-  @override
-  void initState() {
-    super.initState();
-
-    _emailFocus.addListener(() {
-      if (_emailFocus.hasFocus) {
-        setState(() {
-          _emailError = false;
-        });
+      if (role == "admin") {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AdminPage()));
+      } else if (role == "user") {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => UserPage()));
       }
-    });
-
-    _passwordFocus.addListener(() {
-      if (_passwordFocus.hasFocus) {
-        setState(() {
-          _passwordError = false;
-        });
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(role.toString()),
+          backgroundColor: Colors.red,
+        ));
+        return;
       }
-    });
-
-    _nameFocus.addListener(() {
-      if (_nameFocus.hasFocus) {
-        setState(() {
-          _nameError = false;
-        });
-      }
-    });
-  }
-
-  //Register account
-  Future<void> _register() async {
-    ValidateInput();
-    String inputEmail = _txtEmail.text.toString();
-    String inputPassword = _txtPassword.text.toString();
-    String inputFullname = _txtFullName.text.toString();
-    Account account = Account(inputEmail, inputFullname);
-    try {
-      await _daoAccount.register(
-        account,
-        inputPassword,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Đăng ký thành công!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
+    }
+    catch(e){
       if (kDebugMode) {
         print(e.toString());
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +112,7 @@ class _RegisterState extends State<Register> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Register",
+                    "Login",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -154,18 +133,14 @@ class _RegisterState extends State<Register> {
             ),
             const SizedBox(height: 20),
             TextField(
+              style: const TextStyle(color: Colors.white),
               controller: _txtEmail,
               focusNode: _emailFocus,
-              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black54,
+                errorText: _emailError,
                 hintText: "Your Email Address",
-                errorText: _emailError
-                    ? (_txtEmail.text.isEmpty
-                        ? 'Email không được để trống'
-                        : 'Email không hợp lệ')
-                    : null,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -176,37 +151,15 @@ class _RegisterState extends State<Register> {
             Padding(padding: EdgeInsets.only(bottom: 10)),
             const SizedBox(height: 12),
             TextField(
+              obscureText: true,
               controller: _txtPassword,
               focusNode: _passwordFocus,
-              obscureText: true,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 filled: true,
+                errorText: _passwordError,
                 fillColor: Colors.black54,
                 hintText: "Password",
-                errorText: _passwordError
-                    ? (_txtPassword.text.isEmpty
-                        ? 'Password không được để trống'
-                        : 'Password phải có ít nhất 6 kí tự')
-                    : null,
-                hintStyle: const TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            Padding(padding: EdgeInsets.only(bottom: 10)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _txtFullName,
-              focusNode: _nameFocus,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.black54,
-                hintText: "Full Name",
-                errorText: _nameError ? 'Full Name không được để trống' : null,
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
@@ -215,13 +168,21 @@ class _RegisterState extends State<Register> {
               ),
             ),
             Container(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 50),
+              padding: EdgeInsets.only(left: 10, right: 10, top: 30),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   ElevatedButton(
-                    onPressed: _register,
+                    onPressed: _Login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF4B39EF),
                       padding: const EdgeInsets.symmetric(
@@ -231,7 +192,7 @@ class _RegisterState extends State<Register> {
                       ),
                     ),
                     child: const Text(
-                      "Confirm",
+                      "Login",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
@@ -243,23 +204,19 @@ class _RegisterState extends State<Register> {
                 alignment: Alignment.bottomCenter,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Login()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 17),
+                        horizontal: 30, vertical: 20),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
                   child: const Text(
-                    "Back to login",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
+                    "Continue As Guest",
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
