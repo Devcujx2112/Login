@@ -29,6 +29,71 @@ class _LoginScreenState extends State<Login> {
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
 
+  void showForgotPasswordDialog(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text("Quên mật khẩu?"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Nhập email của bạn để nhận liên kết đặt lại mật khẩu."),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: "Email",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text("Hủy"),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() => isLoading = true);
+                          try {
+                            await _daoAccount
+                                .sendPasswordResetEmail(emailController.text);
+                            Navigator.pop(dialogContext);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      "Email đặt lại mật khẩu đã được gửi!")),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
+                          } finally {
+                            setState(() => isLoading = false);
+                          }
+                        },
+                  child: isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : Text("Gửi yêu cầu"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -56,29 +121,28 @@ class _LoginScreenState extends State<Login> {
     if (_emailError != null || _passwordError != null) {
       return;
     }
-    try{
+    try {
       String? role = await _daoAccount.login(_txtEmail.text, _txtPassword.text);
 
       if (role == "admin") {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AdminPage()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => AdminPage()));
       } else if (role == "user") {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => UserPage()));
-      }
-      else {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => UserPage()));
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(role.toString()),
           backgroundColor: Colors.red,
         ));
         return;
       }
-    }
-    catch(e){
+    } catch (e) {
       if (kDebugMode) {
         print(e.toString());
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -173,12 +237,15 @@ class _LoginScreenState extends State<Login> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: () {showForgotPasswordDialog(context);},
+                    child: Text(
+                      "Forgot Password?",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   ElevatedButton(
@@ -204,7 +271,8 @@ class _LoginScreenState extends State<Login> {
                 alignment: Alignment.bottomCenter,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Register()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),
@@ -216,7 +284,10 @@ class _LoginScreenState extends State<Login> {
                   ),
                   child: const Text(
                     "Continue As Guest",
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

@@ -68,7 +68,7 @@ class DAOAccount {
           return "Email không hợp lệ. Vui lòng nhập lại!";
         case 'user-disabled':
           return "Tài khoản này đã bị vô hiệu hóa.";
-        case 'invalid-credential': // Xử lý lỗi này cụ thể hơn
+        case 'invalid-credential':
           return "Tài khoản hoặc mật khẩu không đúng. Vui lòng thử lại!";
         default:
           return "Lỗi xác thực: ${e.message}";
@@ -77,6 +77,52 @@ class DAOAccount {
       return "Lỗi Firebase: ${e.message}";
     } catch (e) {
       return "Lỗi không xác định: ${e.toString()}";
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      //Email fake
+      bool exists = await _checkIfEmailExists(email);
+      if (!exists) {
+        throw Exception("Email này chưa được đăng ký trên hệ thống.");
+      }
+
+      //Email real
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthException(e));
+    } catch (e) {
+      throw Exception("Lỗi không xác định: ${e.toString()}");
+    }
+  }
+
+  Future<bool> _checkIfEmailExists(String email) async {
+    try {
+      //Where realtime
+      DataSnapshot snapshot = await _dbRef.child("Account").get();
+      if (!snapshot.exists) return false;
+
+      Map<dynamic, dynamic> accounts = snapshot.value as Map<dynamic, dynamic>;
+      for (var account in accounts.values) {
+        if (account["email"] == email.trim()) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+  //Log errors
+  String _handleAuthException(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return "Email không hợp lệ. Vui lòng nhập lại!";
+      case 'user-not-found':
+        return "Không tìm thấy tài khoản với email này.";
+      default:
+        return "Lỗi: ${e.message}";
     }
   }
 }
