@@ -1,11 +1,11 @@
-class Account{
+class Account {
   late String _uid;
   late String _email;
   late String _fullName;
   late String _role;
   late DateTime _createdAt;
 
-  Account(this._email, this._fullName){
+  Account(this._email, this._fullName) {
     _role = 'user';
     _createdAt = DateTime.now();
   }

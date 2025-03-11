@@ -3,8 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:login/View/Register.dart';
-import 'package:login/View/admin.dart';
-import 'package:login/View/user.dart';
+import 'package:login/View/Admin.dart';
+import 'package:login/View/User.dart';
 import '../Database/firebase_options.dart';
 import '../Helpers/Validate_input.dart';
 import '../Model/Account.dart';
@@ -272,7 +272,7 @@ class _LoginScreenState extends State<Login> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Register()));
+                        MaterialPageRoute(builder: (context) => RegisterSeller()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),

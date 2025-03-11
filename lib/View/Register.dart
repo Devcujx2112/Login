@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:login/Helpers/Validate_input.dart';
 import 'package:login/Model/Account.dart';
 import '../ViewModel/VM_Account.dart';
+import 'GoogleMapSeller.dart';
 import 'Login.dart';
 
-class Register extends StatefulWidget {
-  const Register({super.key});
+class RegisterSeller extends StatefulWidget {
+  const RegisterSeller({super.key});
 
   @override
-  State<Register> createState() => _RegisterState();
+  State<RegisterSeller> createState() => _RegisterStateSeller();
 }
 
-class _RegisterState extends State<Register> {
+class _RegisterStateSeller extends State<RegisterSeller> {
   final TextEditingController _txtEmail = TextEditingController();
   final TextEditingController _txtPassword = TextEditingController();
   final TextEditingController _txtFullName = TextEditingController();
@@ -216,7 +217,7 @@ class _RegisterState extends State<Register> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Login()));
+                        MaterialPageRoute(builder: (context) => Googlemapseller()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0x4C4B39EF),
